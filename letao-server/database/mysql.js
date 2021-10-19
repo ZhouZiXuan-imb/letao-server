@@ -29,12 +29,12 @@ class Mysql {
                     return err;
                 }
                 // 使用connection参数中的query方法传入sql语句，去到数据库中查询
-                connection.query(sql, values, (err,rows) => {
+                connection.query(sql, values, (err,result) => {
                     if(err) {
                         reject(err);
                     } else {
                         // 如果没有错误，使用Promise的resolve返回正确结果
-                        resolve(rows);
+                        resolve(result);
                     }
                     connection.release();
                 })
