@@ -3,7 +3,7 @@ module.exports.getRandom = (min, max) => {
     return Math.floor(Math.random() * (max - min) + 1);
 }
 // 短信验证码
-module.exports.smscode = (codeLen) => {
+module.exports.smsCode = (codeLen) => {
     let code = '';
     for (let i = 0; i < codeLen; i++) {
         code += this.getRandom(0, 9);
@@ -56,7 +56,7 @@ module.exports.sendSms = async (mobile, code) => {
         /* 短信应用ID: 短信SmsSdkAppId在 [短信控制台] 添加应用后生成的实际SmsSdkAppId，示例如1400006666 */
         SmsSdkAppId: process.env.SmsSdkAppId,
         /* 短信签名内容: 使用 UTF-8 编码，必须填写已审核通过的签名，签名信息可登录 [短信控制台] 查看 */
-        SignName: process.env.SignName,
+        SignName: "达简网络",
         /* 短信码号扩展号: 默认未开通，如需开通请联系 [sms helper] */
         ExtendCode: "",
         /* 国际/港澳台短信 senderid: 国内短信填空，默认未开通，如需开通请联系 [sms helper] */
