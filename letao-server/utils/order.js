@@ -25,17 +25,16 @@ module.exports.createSign = (args) => {
     // 使用MD5加密
     return createHash("MD5").update(stringA).digest("hex").toUpperCase();
 }
-
-// 微信下单
-module.exports.createOrder = async (url, params) => {
+// 微信下单and查询微信订单
+module.exports.orderHandle = async (url, params) => {
     return new Promise(async (resolve, reject) => {
         const result = await axios({url:url, data: params, method: "POST"});
         xml.parseString(result.data, function (err, res) {
             const { return_code, result_code, return_msg } = res.xml;
-            if (return_code === 'SUCCESS' && result_code === 'SUCCESS' && return_msg === 'OK') {
+            if (return_code[0] === 'SUCCESS' && result_code[0] === 'SUCCESS' && return_msg[0] === 'OK') {
                 resolve(res.xml);
             } else {
-                reject(res);
+                reject(err);
             }
         })
     })

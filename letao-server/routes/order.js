@@ -1,10 +1,12 @@
 const router = require('koa-router')();
 
-const {order} = require('../controllers/order')
+const {order, queryOrder, native} = require('../controllers/order')
 
-router.prefix('/order')
 
-router.post('/', order)
+router.post('/order', order)
 
+router.post('/pay/queryOrder', queryOrder)
+
+router.post('/pay/native', native)
 
 module.exports = router;
