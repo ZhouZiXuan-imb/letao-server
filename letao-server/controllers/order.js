@@ -1,7 +1,8 @@
 const {appid, mch_id, notify_url, orderUrl, orderquery} = require('../config/wx')
 const {createSign, orderHandle} = require('../utils/order')
 const {getRandomByLength, getTrade_no} = require('../utils/order')
-const mysql = require('../database/mysql')
+// 引入module层
+const {orderPay, orderChangeTradeState} = require('../model/order')
 // 引入生成二维码插件
 const QRcode = require('qrcode');
 
@@ -14,7 +15,7 @@ const commonParams = {
 
 // 微信下单
 module.exports.order = async (ctx) => {
-
+    // 下单的时候生成商户号和随机字符串，这里应该前端传来商户号和随机字符串
     commonParams.nonce_str = getRandomByLength();
     commonParams.out_trade_no = getTrade_no();
 
@@ -54,8 +55,9 @@ module.exports.order = async (ctx) => {
     const data = await orderHandle(orderUrl, sendData);
     const {return_code, return_msg, result_code, code_url} = data;
     if (return_code[0] === 'SUCCESS' && return_msg[0] === 'OK' && result_code[0] === "SUCCESS") {
-        // 下单成功把数据写入数据库
-        await mysql.query(`insert into payorder (appid, mch_id, body, nonce_str, notify_url, out_trade_no, spbill_create_ip, total_fee, trade_type, trade_state) values(${appid}, ${mch_id}, ${body}, ${commonParams.nonce_str}, ${notify_url}, ${commonParams.out_trade_no}, ${spbill_create_ip}, ${total_fee}, ${trade_type}, 'NOTPAY')`)
+        // 把订单数据存入数据库
+        await orderPay(appid, mch_id, body, commonParams.nonce_str, notify_url, commonParams.out_trade_no, spbill_create_ip, total_fee, trade_type, "NOTPAY")
+        // 使用qrcode插件把bate64图片生成二维码
         data.payUrl = await QRcode.toDataURL(code_url);
         // 前端查询数据的时候需要用到这两个参数
         data.nonce_str = commonParams.nonce_str;
@@ -76,8 +78,9 @@ module.exports.queryOrder = async (ctx) => {
         nonce_str: commonParams.nonce_str, // 随机字符串
         out_trade_no: commonParams.out_trade_no, // 商户订单号
     }
-
+    // 调用生成签名算法方法
     const sign = createSign(params);
+    // 把生成的签名添加到params中
     params.sign = sign;
 
     // 声明请求参数
@@ -99,7 +102,13 @@ module.exports.queryOrder = async (ctx) => {
 }
 
 module.exports.native = async (ctx) => {
-const {out_trade_no} = ctx.request.body.xml;
-// 根据商户号来修改订单表中的支付状态
-await mysql.query(`update payorder set trade_state = 'SUCCESS' where out_trade_no = ${out_trade_no}`);
+    // 调用修改订单支付状态的数据库方法
+    await orderChangeTradeState(commonParams.out_trade_no);
+
+    ctx.body = {
+        status: 200,
+        data: {
+            message: "支付成功"
+        }
+    }
 }
