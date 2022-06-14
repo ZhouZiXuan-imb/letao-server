@@ -8,7 +8,7 @@ const logger = require('koa-logger')
 // 引入koa-jwt
 const KoaJwt = require('koa-jwt');
 // 引入加密字符串
-const {jwtSecret} = require('./config/index');
+const { jwtSecret } = require('./config/index');
 
 require('dotenv').config()
 
@@ -26,21 +26,21 @@ onerror(app)
 
 
 // 使用koa-jwt中间件，来拦截客户端和服务端再调用接口时，如果请求头中没有设置token，返回401
-// app.use(function (ctx, next) {
-//     return next().catch((err) => {
-//         if (401 == err.status) {
-//             ctx.status = 401;
-//             ctx.body = 'Protected resource, use Authorization header to get access\n';
-//         } else {
-//             throw err;
-//         }
-//     });
-// });
+app.use(function (ctx, next) {
+    return next().catch((err) => {
+        if (401 == err.status) {
+            ctx.status = 401;
+            ctx.body = 'Protected resource, use Authorization header to get access\n';
+        } else {
+            throw err;
+        }
+    });
+});
 
 // 设置哪些接口需要带token
 // jwt(加密信息) 加密信息一定要跟token生成使用加密字符串保持一致
 // unless排除哪些不需要带token
-// app.use(KoaJwt({secret: jwtSecret}).unless({path: [/^\/public/, /^\/user\/login/, /^\/sms/]}));
+app.use(KoaJwt({ secret: jwtSecret }).unless({ path: [/^\/public/, /^\/user\/login/, /^\/user\/register/, /^\/sms/] }));
 
 // middlewares
 app.use(bodyparser({
